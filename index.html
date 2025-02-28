@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>家計簿をつける</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #FFF3E0; /* 柔らかいオレンジ系でポップに */
+            text-align: center;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            background-color: #FFFFFF;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            margin: auto;
+        }
+        h2 {
+            color: #FF6F61; /* 元気が出るコーラルピンク */
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin: 10px 0 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 2px solid #FFAB91;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        .radio-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        .radio-group label {
+            background-color: #FFCCBC;
+            padding: 10px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .radio-group input {
+            display: none;
+        }
+        .radio-group input:checked + label {
+            background-color: #FF6F61;
+            color: white;
+        }
+        button {
+            background-color: #FF6F61;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            width: 100%;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #E64A19;
+        }
+        .view-button {
+            background-color: #4DB6AC;
+            margin-top: 15px;
+        }
+        .view-button:hover {
+            background-color: #00897B;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>📒 家計簿をつける</h2>
+
+        <label for="amount">💰 いくら使った？</label>
+        <input type="number" id="amount" inputmode="numeric" placeholder="金額を入力">
+
+        <label for="category">📂 どれですか？</label>
+        <select id="category">
+            <option value="食費">🍚 食費</option>
+            <option value="生活雑貨">🛍 生活雑貨</option>
+            <option value="生活用品">🧴 生活用品</option>
+            <option value="家具・家電">🛏 家具・家電</option>
+            <option value="医療費">🏥 医療費</option>
+            <option value="ガソリン代">⛽ ガソリン代</option>
+            <option value="衣類">👗 衣類</option>
+            <option value="家族費">👨‍👩‍👧‍👦 家族費</option>
+            <option value="交際費">🎉 交際費</option>
+            <option value="水道代">🚰 水道代</option>
+            <option value="電気代">⚡ 電気代</option>
+            <option value="灯油代">🔥 灯油代</option>
+            <option value="職場">🏢 職場</option>
+            <option value="通信費">📞 通信費</option>
+            <option value="教育費">📚 教育費</option>
+            <option value="剣道">🥋 剣道</option>
+            <option value="テニス">🎾 テニス</option>
+            <option value="保険料">🛡 保険料</option>
+            <option value="税金">💰 税金</option>
+            <option value="かな">🔤 かな</option>
+            <option value="資格試験・教養">🎓 資格試験・教養</option>
+            <option value="コインランドリー">🧺 コインランドリー</option>
+            <option value="クリーニング">👚 クリーニング</option>
+            <option value="冠婚葬祭">💒 冠婚葬祭</option>
+            <option value="寄付金">💸 寄付金</option>
+            <option value="住居費（固定費）">🏠 住居費（固定費）</option>
+            <option value="住居費（変動費）">🏡 住居費（変動費）</option>
+            <option value="車両費（固定費）">🚗 車両費（固定費）</option>
+            <option value="車両費（変動費）">🚙 車両費（変動費）</option>
+        </select>
+
+        <label>⚖️ どちらですか？</label>
+        <div class="radio-group">
+            <input type="radio" id="minimum" name="type" value="最低限">
+            <label for="minimum">最低限</label>
+
+            <input type="radio" id="luxury" name="type" value="ゆとり">
+            <label for="luxury">ゆとり</label>
+        </div>
+
+        <label for="date">📅 いつ使った？</label>
+        <input type="date" id="date">
+
+        <label for="note">📝 備考（任意）</label>
+        <input type="text" id="note" placeholder="メモを入力">
+
+        <button onclick="confirmAndSend()">✅ 送信</button>
+        <button class="view-button" onclick="openKakeibo()">📊 家計簿を見る</button>
+    </div>
+
+    <script>
+        // ページが読み込まれた時に日付を今日の日付に設定
+        window.onload = function() {
+            const today = new Date().toISOString().split('T')[0]; // 今日の日付 (YYYY-MM-DD)
+            document.getElementById("date").value = today;
+        };
+
+        function confirmAndSend() {
+            const amount = document.getElementById("amount").value;
+            const category = document.getElementById("category").value;
+            const type = document.querySelector('input[name="type"]:checked');
+            const date = document.getElementById("date").value;
+            const note = document.getElementById("note").value;
+    
+            if (!amount || !type || !date) {
+                alert("⚠️ 必須項目を入力してください！");
+                return;
+            }
+
+            // 日付を"YYYY年M月D日"形式に変換
+            const formattedDate = formatDate(date);
+    
+            // 確認ダイアログ
+            const confirmMessage = `✅ 送信内容\n\n💰 金額: ${amount}円\n📂 費目: ${category}\n⚖️ 種類: ${type.value}\n📅 日付: ${formattedDate}\n📝 備考: ${note || "なし"}\n\n送信してよろしいですか？`;
+    
+            if (confirm(confirmMessage)) {
+                sendData(amount, category, type.value, formattedDate, note);
+            }
+        }
+
+        function formatDate(date) {
+            const [year, month, day] = date.split("-");
+            return `${year}年${parseInt(month)}月${parseInt(day)}日`;
+        }
+    
+        function sendData(amount, category, type, date, note) {
+            fetch("https://script.google.com/macros/s/AKfycbzgA0PYUSJRj9n7uh043pKpMspjlM4sh5rN9elzg9VcrGKh2mNW3Q2krDIANrui7b5ItQ/exec", {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ amount, category, type, date, note })
+            }).then(() => {
+                alert("✅ 送信完了！スプレッドシートに記録しました。");
+                document.getElementById("amount").value = "";
+                document.getElementById("note").value = "";
+            }).catch(error => {
+                console.error("送信エラー:", error);
+                alert("❌ 送信失敗！もう一度試してください。");
+            });
+        }
+
+        function openKakeibo() {
+            // ここに家計簿を見るための機能を追加する場合は、この関数に実装してください。
+            alert("家計簿を見る機能は未実装です。");
+        }
+    </script>
+</body>
+</html>
