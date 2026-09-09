@@ -17,6 +17,11 @@
   .choice-grid{display:grid;gap:8px}.choice-grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.choice-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.choice{position:relative;min-width:0}.choice input{position:absolute;opacity:0;pointer-events:none}.choice span{display:flex;min-height:48px;align-items:center;justify-content:center;padding:7px 5px;border:1.5px solid #e2d8d1;border-radius:11px;background:#fff;text-align:center;font-size:13px;font-weight:650;color:#5e534e}.choice input:checked+span{border-color:var(--coral);background:var(--coral-pale);color:#9c3d34;font-weight:800}.choice input:checked+span::before{content:"✓";font-size:12px;margin-right:3px}.choice input:focus-visible+span{outline:3px solid #79c5bc;outline-offset:2px}
   .purpose{margin-top:30px;padding-top:22px;border-top:2px solid #f1e1d8}.purpose .section-title{margin-bottom:10px;color:#7f5147;font-size:15px;font-weight:850}.purpose .choice span{min-height:58px;font-size:15px}
   .characteristics{margin-top:24px}.characteristics .section-title{font-size:15px;font-weight:850;margin-bottom:10px}.feature-groups{display:grid;grid-template-columns:1fr 1fr;gap:14px}.feature-name{display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px}.feature-groups .choice-grid{gap:5px}.feature-groups .choice span{min-height:42px;font-size:12px}
+  /* 青緑=生活に必要・毎月・固定費 / ピンク=ゆとり・不定期・変動費 */
+  .purpose input[value="生活に必要"]+span,.feature-groups input[name="frequency"][value="毎月"]+span,.feature-groups input[name="nature"][value="固定"]+span{border-color:#9bd6ce;background:#e9f7f4;color:#35736c}
+  .purpose input[value="ゆとり"]+span,.feature-groups input[name="frequency"][value="不定期"]+span,.feature-groups input[name="nature"][value="変動"]+span{border-color:#ffc4b6;background:#fff0eb;color:#a34b41}
+  .purpose input[value="生活に必要"]:checked+span,.feature-groups input[name="frequency"][value="毎月"]:checked+span,.feature-groups input[name="nature"][value="固定"]:checked+span{border-color:#3f9f95;background:#4db6ac;color:#fff;box-shadow:0 3px 8px rgba(53,143,135,.2)}
+  .purpose input[value="ゆとり"]:checked+span,.feature-groups input[name="frequency"][value="不定期"]:checked+span,.feature-groups input[name="nature"][value="変動"]:checked+span{border-color:#e56356;background:#ff6f61;color:#fff;box-shadow:0 3px 8px rgba(223,89,77,.2)}
   .memo{margin-top:22px}.memo label{display:block;margin:0 0 6px;font-size:13px;font-weight:700;color:var(--muted)}textarea{min-height:46px;padding:10px 12px;resize:vertical;font-size:14px}
   .notice{margin:15px 0 0;padding:10px 12px;border-left:3px solid #d79624;background:#fff8dd;color:#715d35;font-size:12px}.notice[hidden]{display:none}
   button,.view-button{display:flex;align-items:center;justify-content:center;width:100%;min-height:58px;border:0;border-radius:14px;font-weight:850;text-decoration:none;cursor:pointer}.submit{margin-top:20px;background:var(--coral);color:#fff;font-size:20px;box-shadow:0 5px 12px rgba(255,111,97,.25)}.submit:hover{background:var(--coral-dark)}.submit:disabled{opacity:.65;cursor:wait}.view-button{margin-top:12px;background:var(--teal);color:#fff;font-size:16px}.view-button:hover{background:#358f87}.status{min-height:22px;margin:13px 1px 0;font-size:13px;white-space:pre-wrap}.status:empty{display:none}.help{margin-top:13px;color:var(--muted);font-size:12px;text-align:center}
@@ -65,7 +70,7 @@
     <section class="memo"><label for="note">メモ（任意）</label><textarea id="note" name="note" rows="2" placeholder="例：家族で夕食"></textarea></section>
     <p id="investmentHint" class="notice" hidden>NISA・積立は生活支出と分けて記録します。</p>
     <button id="submit" class="submit" type="submit">送信</button>
-    <a id="viewSheet" class="view-button" href="https://docs.google.com/spreadsheets/d/1CZhcauxXKsahIZyyriJDtoyZqzZGiYwYEbwW_ES-mTk/edit?gid=444457785#gid=444457785">📊 統合履歴を見る</a>
+    <a id="viewSheet" class="view-button" href="https://docs.google.com/spreadsheets/d/1CZhcauxXKsahIZyyriJDtoyZqzZGiYwYEbwW_ES-mTk/edit?gid=444457785#gid=444457785">📊 家計簿を見る</a>
     <p id="status" class="status" role="status" aria-live="polite"></p>
     <p class="help">送信後は金額とメモだけを空にします。</p>
   </form>
