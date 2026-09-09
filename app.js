@@ -65,7 +65,7 @@ function sheetUrl() {
   const raw = window.KAKEIBO_CONFIG && window.KAKEIBO_CONFIG.spreadsheetUrl;
   const url = new URL(raw);
   if (url.protocol !== 'https:' || url.hostname !== 'docs.google.com' || !url.pathname.startsWith('/spreadsheets/d/')) {
-    throw new Error('統合履歴のリンク先が設定されていません。');
+    throw new Error('支出一覧のリンク先が設定されていません。');
   }
   const row = Number(localStorage.getItem(LAST_UNIFIED_ROW_KEY));
   url.hash = 'gid=' + UNIFIED_GID + (Number.isSafeInteger(row) && row > 1 ? '&range=A' + row : '');
@@ -143,7 +143,7 @@ form.addEventListener('submit', async event => {
     $('status').textContent = '記録しました。続けて入力できます。';
     $('amount').focus();
   } catch (_) {
-    $('status').textContent = '保存結果を確認できませんでした。入力内容は残しています。統合履歴を確認してから、同じ内容で再送してください。';
+    $('status').textContent = '保存結果を確認できませんでした。入力内容は残しています。支出一覧を確認してから、同じ内容で再送してください。';
   } finally {
     sending = false;
     $('submit').disabled = false;
