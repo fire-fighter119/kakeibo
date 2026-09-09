@@ -1,75 +1,77 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>家計簿2｜使ったお金を記録</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>家計簿｜使ったお金を記録</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#fff5e8;color:#293343;font-family:system-ui,-apple-system,sans-serif;padding:24px 12px 48px;line-height:1.6}
-main{max-width:480px;margin:auto;background:white;padding:24px;border-radius:20px;box-shadow:0 8px 30px #483a1710}h1{font-size:24px;margin:0 0 6px}p{margin:0 0 20px}.muted{color:#626b76;font-size:13px}
-label,legend{font-weight:700}label.field{display:block;margin:18px 0 6px}input,select,textarea,button{font:inherit}input:not([type=radio]):not([type=checkbox]),select,textarea{width:100%;border:1px solid #cbd1d8;border-radius:9px;padding:11px;background:white;color:#293343}textarea{resize:vertical;min-height:75px}
-fieldset{border:0;padding:0;margin:22px 0 8px}.choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}.choice{position:relative}.choice input{position:absolute;opacity:0;width:1px;height:1px}.choice span{display:flex;min-height:60px;align-items:center;justify-content:center;text-align:center;border:2px solid #dce1e6;border-radius:10px;padding:8px 3px;font-size:14px;line-height:1.4}.choice input:checked+span{border-color:#bc680d;background:#fff0d3;color:#714200}.choice input:focus-visible+span{outline:3px solid #3068b6;outline-offset:3px}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}button{border:0;border-radius:10px;padding:13px;width:100%;font-weight:700;cursor:pointer;background:#204762;color:white;margin-top:16px}button:disabled{opacity:.5;cursor:not-allowed}button.secondary{background:#edf1f4;color:#293343}.status{margin:16px 0;white-space:pre-wrap;font-size:14px}.warning{padding:12px;background:#fff7dc;border-left:3px solid #c39426;font-size:13px;margin-top:18px}details{margin-top:22px}summary{cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}.inline{display:flex;gap:8px;align-items:flex-start;font-size:14px;margin-top:16px}.inline input{margin-top:5px;flex-shrink:0}
-@media(max-width:360px){main{padding:18px}.choices{gap:5px}.choice span{font-size:13px}}
-/* Approved original palette and two-way selection. */
-.choices{grid-template-columns:repeat(2,minmax(0,1fr))}
-body{background:#fff3e0;color:#333}h1{color:#ff6f61;text-align:center;margin-bottom:18px}
-label.field,legend{text-align:center}legend{width:100%}
-input:not([type=radio]):not([type=checkbox]),select,textarea{border:2px solid #ffab91;border-radius:10px}
-.choice span{background:#ffccbc;border-color:#ffccbc;color:#333}
-.choice input:checked+span{background:#ff6f61;border-color:#e25b4e;color:#fff}
-button{background:#ff6f61;font-size:18px}button:hover{background:#e65e51}
-button.view-button{background:#4db6ac}button.view-button:hover{background:#00897b}
-/* Focus on three actions. The remaining fields live in an editable summary. */
-body{padding:20px 14px}main{max-width:440px;padding:24px;border-radius:24px}header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:22px}h1{font-size:19px;color:#513c35;margin:0}header .muted{font-size:11px;margin:0}label.field{text-align:left;font-size:16px;margin:0 0 9px}.step{display:inline-grid;place-items:center;width:23px;height:23px;border-radius:50%;font-size:12px;background:#ffede6;color:#ab4538;margin-right:6px}
-#category{height:58px;font-size:19px;font-weight:700;background:#fffaf6;border:1.5px solid #ffc0ab;margin-bottom:24px}.amount-wrap{display:flex;align-items:center;border-bottom:2px solid #ffab91;margin-bottom:20px}.amount-wrap:focus-within{outline:2px solid #cd5948;outline-offset:2px;border-radius:8px}#amount{height:68px;font-size:38px;font-weight:700;border:0;padding:4px 0;outline:none;border-radius:0;appearance:textfield}#amount::-webkit-inner-spin-button,#amount::-webkit-outer-spin-button{appearance:none;margin:0}#amount::placeholder{color:#c5b9b3}.amount-wrap>span{font-size:18px;font-weight:700;color:#80716a;padding:0 6px}
-.settings{background:#faf8f5;border:1px solid #eee7df;border-radius:14px;margin:0 0 8px}summary{list-style:none}summary::-webkit-details-marker{display:none}.settings>summary{padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:74px}#summaryMain{display:block;font-size:14px}#summaryDate{display:block;font-size:12px;color:#756b65;margin-top:4px}.edit-label{font-size:12px;color:#75544a;text-decoration:underline;white-space:nowrap}.settings[open] .edit-label{font-size:0}.settings[open] .edit-label:after{content:'閉じる';font-size:12px}.settings-body{padding:0 14px 14px;border-top:1px solid #eee7df}.settings-body label.field{font-size:13px;margin-top:12px}.settings-body fieldset{margin:12px 0}.settings-body legend{font-size:13px;text-align:left}.settings-body .choice span{min-height:45px}.settings-body input:not([type=radio]),.settings-body select{border:1px solid #dccdc6}.memo{margin:0}.memo>summary{color:#78675f;font-size:14px;padding:10px 2px;min-height:44px}.memo textarea{margin-bottom:10px}
-#submit{min-height:60px;font-size:20px;border-radius:14px;margin-top:10px;box-shadow:0 5px 12px #ff6f6120}#submit .step{background:#ffffff26;color:white}#viewSheet{background:transparent;color:#247a72;font-size:14px;min-height:44px;margin-top:8px;padding:10px}#viewSheet:hover{background:#f2faf8}.help{font-size:12px;color:#88796f;text-align:center;margin-top:8px}.help summary{padding:6px}.help p,.help pre{text-align:left}.status:empty{display:none}.status{font-size:13px}button:focus-visible,summary:focus-visible{outline:3px solid #287e88;outline-offset:3px}[hidden]{display:none!important}@media(max-width:360px){main{padding:18px}#summaryMain{font-size:13px}header .muted{font-size:10px}}
-.settings>summary{display:block}.summary-options{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:7px}.option-column{display:flex;flex-direction:column;gap:5px}.option-heading{font-size:11px;color:#756b65;text-align:center;margin-bottom:2px}.option-value{display:flex;align-items:center;justify-content:center;min-height:32px;border:2px solid transparent;border-radius:8px;font-size:12px;color:#857971;white-space:nowrap}.option-value.is-selected{border-color:#e87867;background:#fff0e9;color:#88382d;font-weight:700}.option-value.is-selected::before{content:'✓';margin-right:3px;font-size:11px}.summary-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;gap:6px}#summaryDate{margin:0}.sr-only{position:absolute!important;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}@media(max-width:360px){.settings>summary{padding:12px 9px}.summary-options{gap:3px}.option-value{font-size:11px}}
-</style>
-<style>
-.option-heading{font-size:14px;font-weight:800;color:#423b36;padding-bottom:7px;margin-bottom:4px;border-bottom:1px solid #dfd6cd;letter-spacing:.04em}
-.date-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 14px;padding:0 2px}
-.date-row strong{font-size:13px;color:#61544c;display:block}
-.date-row #summaryDate{font-size:15px;font-weight:600;color:#423b36}
-#editDate{width:auto;min-height:44px;margin:0;padding:8px 14px;background:#fff0e9;color:#88382d;font-size:13px;border:1px solid #efc4b7}
-#dateEditor{margin-bottom:14px}#dateEditor label{font-size:13px}
-.summary-footer{justify-content:flex-end;margin-top:8px}
-</style>
-<style>
-.date-direct{position:relative;min-height:48px;margin-bottom:16px;border-bottom:1px solid #eadbd0;display:flex;align-items:center}
-.date-direct #summaryDate{font-size:17px;font-weight:600;color:#423b36;margin:0;padding:4px 2px}
-.date-direct input{position:absolute;inset:0;opacity:0;cursor:pointer;min-height:48px}
-.date-direct:focus-within{outline:2px solid #287e88;border-radius:8px}
-.date-direct::after{content:'▾';margin-left:auto;color:#9c6d5c}
-#settings{padding:12px 10px;gap:7px}#settings fieldset{margin:0;min-width:0;gap:4px}#settings legend{margin-bottom:8px}
-#settings .choice span{min-height:44px;padding:4px 2px;font-size:12px;background:transparent;border-color:transparent;color:#756b65;font-weight:400;white-space:nowrap}
-#settings .choice input:checked+span{border-color:#e87867;background:#fff0e9;color:#88382d;font-weight:700}
-#settings .choice input:checked+span::before{content:'✓';margin-right:3px}
-.memo{margin:12px 0 4px}.memo label{font-size:12px;color:#78675f;font-weight:500}.memo #note{font-size:14px;min-height:44px;padding:8px 10px;border:1px solid #e6dcd5;margin-top:4px}
-#viewSheet{display:flex;align-items:center;justify-content:center;width:100%;text-decoration:none;font-weight:700;background:#4db6ac;color:white;border-radius:14px;min-height:50px;font-size:16px;margin-top:12px}#viewSheet:hover{background:#348f87}#viewSheet:focus-visible{outline:3px solid #287e88;outline-offset:3px}
-@media(max-width:360px){#settings{gap:3px;padding:10px 6px}#settings .choice span{font-size:11px}}
+  :root{--coral:#ff6f61;--coral-dark:#df594d;--coral-pale:#fff0eb;--cream:#fff3e0;--ink:#342f2c;--muted:#746963;--line:#ecdcd2;--teal:#4db6ac}
+  *{box-sizing:border-box} body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;line-height:1.5;padding:18px 12px 42px}
+  main{max-width:460px;margin:auto;background:#fff;border-radius:24px;padding:24px 20px;box-shadow:0 10px 28px rgba(95,60,35,.1)}
+  h1,p{margin:0} header{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px;gap:12px} h1{font-size:21px;color:var(--coral-dark)} .flow{font-size:11px;color:var(--muted);white-space:nowrap}
+  .block{margin-top:23px}.block:first-of-type{margin-top:0}.label{display:block;font-size:16px;font-weight:800;margin:0 0 9px}.step{display:inline-grid;place-items:center;width:22px;height:22px;margin-right:6px;border-radius:50%;background:var(--coral-pale);color:var(--coral-dark);font-size:12px}
+  select,input,textarea,button{font:inherit} select,input[type="number"],textarea{display:block;width:100%;border:2px solid #ffb39e;border-radius:13px;background:#fffaf7;color:var(--ink)}
+  select{height:58px;padding:0 14px;font-size:18px;font-weight:700} .amount{display:flex;align-items:center;border-bottom:3px solid #ffab91}.amount:focus-within{outline:3px solid #ffd4c7;outline-offset:4px;border-radius:7px}.amount input{height:68px;border:0;border-radius:0;padding:0;background:transparent;font-size:38px;font-weight:800;outline:0;appearance:textfield}.amount input::-webkit-inner-spin-button,.amount input::-webkit-outer-spin-button{appearance:none}.amount span{font-weight:800;color:var(--muted);padding:0 7px}
+  .date-control{position:relative;display:flex;align-items:center;min-height:52px;border-bottom:1px solid var(--line)}.date-text{font-size:18px;font-weight:700;padding:8px 2px}.date-control::after{content:"▾";margin-left:auto;color:var(--muted)}.date-control input{position:absolute;inset:0;opacity:0;cursor:pointer}
+  .subitems{margin-top:12px;padding:14px;border-radius:15px;background:#fff8f4;border:1px solid var(--line)}.subitems[hidden]{display:none}.subitems .label{font-size:14px;margin-bottom:8px}
+  .choice-grid{display:grid;gap:8px}.choice-grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.choice-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.choice{position:relative;min-width:0}.choice input{position:absolute;opacity:0;pointer-events:none}.choice span{display:flex;min-height:48px;align-items:center;justify-content:center;padding:7px 5px;border:1.5px solid #e2d8d1;border-radius:11px;background:#fff;text-align:center;font-size:13px;font-weight:650;color:#5e534e}.choice input:checked+span{border-color:var(--coral);background:var(--coral-pale);color:#9c3d34;font-weight:800}.choice input:checked+span::before{content:"✓";font-size:12px;margin-right:3px}.choice input:focus-visible+span{outline:3px solid #79c5bc;outline-offset:2px}
+  .purpose{margin-top:30px;padding-top:22px;border-top:2px solid #f1e1d8}.purpose .section-title{margin-bottom:10px;color:#7f5147;font-size:15px;font-weight:850}.purpose .choice span{min-height:58px;font-size:15px}
+  .characteristics{margin-top:24px}.characteristics .section-title{font-size:15px;font-weight:850;margin-bottom:10px}.feature-groups{display:grid;grid-template-columns:1fr 1fr;gap:14px}.feature-name{display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px}.feature-groups .choice-grid{gap:5px}.feature-groups .choice span{min-height:42px;font-size:12px}
+  .memo{margin-top:22px}.memo label{display:block;margin:0 0 6px;font-size:13px;font-weight:700;color:var(--muted)}textarea{min-height:46px;padding:10px 12px;resize:vertical;font-size:14px}
+  .notice{margin:15px 0 0;padding:10px 12px;border-left:3px solid #d79624;background:#fff8dd;color:#715d35;font-size:12px}.notice[hidden]{display:none}
+  button,.view-button{display:flex;align-items:center;justify-content:center;width:100%;min-height:58px;border:0;border-radius:14px;font-weight:850;text-decoration:none;cursor:pointer}.submit{margin-top:20px;background:var(--coral);color:#fff;font-size:20px;box-shadow:0 5px 12px rgba(255,111,97,.25)}.submit:hover{background:var(--coral-dark)}.submit:disabled{opacity:.65;cursor:wait}.view-button{margin-top:12px;background:var(--teal);color:#fff;font-size:16px}.view-button:hover{background:#358f87}.status{min-height:22px;margin:13px 1px 0;font-size:13px;white-space:pre-wrap}.status:empty{display:none}.help{margin-top:13px;color:var(--muted);font-size:12px;text-align:center}
+  @media(max-width:355px){main{padding:20px 16px}.feature-groups{gap:9px}.choice span{font-size:12px}.flow{display:none}}
 </style>
 </head>
-<body><main>
-<header><h1>📒 家計簿</h1><p class="muted">選択 → 入力 → 送信</p></header>
-<form id="entry">
-<label class="field" for="category"><span class="step">1</span>何に使った？</label><select id="category" name="category"></select>
-<label class="field" for="amount"><span class="step">2</span>いくら使った？</label><div class="amount-wrap"><input id="amount" name="amount" type="number" inputmode="numeric" min="1" step="1" required placeholder="0"><span>円</span></div>
-<label class="field" for="date"><span class="step">3</span>いつ使った？</label>
-<div class="date-direct"><span id="summaryDate" aria-hidden="true"></span><input id="date" name="date" type="date" required aria-label="使った日"></div>
-<div class="settings summary-options" id="settings">
-<fieldset class="option-column"><legend class="option-heading">使い道</legend>
-<label class="choice"><input type="radio" name="type" value="生活に必要" required><span>生活に必要</span></label><label class="choice"><input type="radio" name="type" value="ゆとり"><span>ゆとり</span></label></fieldset>
-<fieldset class="option-column"><legend class="option-heading">頻度</legend>
-<label class="choice"><input type="radio" name="frequency" value="毎月" required><span>毎月</span></label><label class="choice"><input type="radio" name="frequency" value="不定期"><span>不定期</span></label></fieldset>
-<fieldset class="option-column"><legend class="option-heading">性質</legend>
-<label class="choice"><input type="radio" name="nature" value="固定" required><span>固定費</span></label><label class="choice"><input type="radio" name="nature" value="変動"><span>変動費</span></label></fieldset>
-</div>
-<div class="memo"><label for="note">メモ（任意）</label><input id="note" name="note" type="text" placeholder="例：家族で夕食"></div>
-<p id="investmentHint" class="warning" hidden>NISA・積立は資産への振り替えです。生活支出の年間集計からは分けて扱います。</p>
-<button type="submit" id="submit">送信</button>
-<a class="view-button" id="viewSheet" href="https://docs.google.com/spreadsheets/d/1CZhcauxXKsahIZyyriJDtoyZqzZGiYwYEbwW_ES-mTk/edit?gid=1732160294#gid=1732160294">📊 家計簿を見る</a>
-<div id="status" class="status" role="status" aria-live="polite"></div>
-<details class="help"><summary>送信について</summary><p class="warning">保存が完了すると金額欄が空になり、続けて入力できます。「家計簿を見る」は直前に記録した行を開きます。頻度と性質は「アプリ記録」シートに保存されます。</p><details id="preview"><summary>送信データ</summary><pre id="payload"></pre></details></details>
-</form>
-</main><script src="config.js"></script><script src="categories.js"></script><script src="app.js"></script></body></html>
+<body>
+<main>
+  <header><h1>📒 家計簿</h1><p class="flow">選択 → 入力 → 送信</p></header>
+  <form id="entry">
+    <section class="block">
+      <label class="label" for="category"><span class="step">1</span>何に使った？</label>
+      <select id="category" name="category" aria-label="費目"></select>
+      <div id="paymentItemArea" class="subitems" hidden>
+        <span class="label">支払い項目</span>
+        <div id="paymentItems" class="choice-grid two" role="radiogroup" aria-label="支払い項目"></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <label class="label" for="amount"><span class="step">2</span>いくら使った？</label>
+      <div class="amount"><input id="amount" name="amount" type="number" inputmode="numeric" min="1" step="1" required placeholder="0"><span>円</span></div>
+    </section>
+
+    <section class="block">
+      <label class="label" for="date"><span class="step">3</span>いつ使った？</label>
+      <div class="date-control"><span id="summaryDate" class="date-text" aria-hidden="true"></span><input id="date" name="date" type="date" required aria-label="使った日"></div>
+    </section>
+
+    <section class="purpose" aria-labelledby="purpose-title">
+      <h2 id="purpose-title" class="section-title">使い道</h2>
+      <div class="choice-grid two" role="radiogroup" aria-label="使い道">
+        <label class="choice"><input type="radio" name="type" value="生活に必要" required><span>生活に必要</span></label>
+        <label class="choice"><input type="radio" name="type" value="ゆとり"><span>ゆとり</span></label>
+      </div>
+    </section>
+
+    <section class="characteristics" aria-labelledby="characteristics-title">
+      <h2 id="characteristics-title" class="section-title">支払いの特徴</h2>
+      <div class="feature-groups">
+        <div><span class="feature-name">頻度</span><div class="choice-grid two" role="radiogroup" aria-label="頻度"><label class="choice"><input type="radio" name="frequency" value="毎月" required><span>毎月</span></label><label class="choice"><input type="radio" name="frequency" value="不定期"><span>不定期</span></label></div></div>
+        <div><span class="feature-name">性質</span><div class="choice-grid two" role="radiogroup" aria-label="性質"><label class="choice"><input type="radio" name="nature" value="固定" required><span>固定費</span></label><label class="choice"><input type="radio" name="nature" value="変動"><span>変動費</span></label></div></div>
+      </div>
+    </section>
+
+    <section class="memo"><label for="note">メモ（任意）</label><textarea id="note" name="note" rows="2" placeholder="例：家族で夕食"></textarea></section>
+    <p id="investmentHint" class="notice" hidden>NISA・積立は生活支出と分けて記録します。</p>
+    <button id="submit" class="submit" type="submit">送信</button>
+    <a id="viewSheet" class="view-button" href="https://docs.google.com/spreadsheets/d/1CZhcauxXKsahIZyyriJDtoyZqzZGiYwYEbwW_ES-mTk/edit?gid=444457785#gid=444457785">📊 統合履歴を見る</a>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <p class="help">送信後は金額とメモだけを空にします。</p>
+  </form>
+</main>
+<script src="config.js"></script>
+<script src="categories.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
