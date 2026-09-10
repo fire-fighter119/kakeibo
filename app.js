@@ -75,6 +75,22 @@ function updateSheetLink() {
   try { $('viewSheet').href = sheetUrl(); } catch (_) { /* click handler provides the visible message */ }
 }
 
+async function refreshLastSheetRow() {
+  const response = await fetch(ENDPOINT, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=UTF-8'},
+    body: JSON.stringify({action: 'tail'})
+  });
+  if (!response.ok) throw new Error('HTTP ' + response.status);
+  const result = await response.json();
+  const row = Number(result.unifiedRow);
+  if (result.ok !== true || !Number.isSafeInteger(row) || row < 1) {
+    throw new Error(result.error || '最終行を確認できませんでした。');
+  }
+  localStorage.setItem(LAST_UNIFIED_ROW_KEY, String(row));
+  updateSheetLink();
+}
+
 for (const item of Kakeibo.categories) {
   const option = document.createElement('option');
   option.value = item.name;
@@ -101,12 +117,16 @@ form.addEventListener('change', () => {
 });
 $('date').addEventListener('input', updateDate);
 $('date').addEventListener('change', updateDate);
-$('viewSheet').addEventListener('click', event => {
-  try { updateSheetLink(); }
-  catch (error) {
-    event.preventDefault();
-    $('status').textContent = error.message;
+$('viewSheet').addEventListener('click', async event => {
+  event.preventDefault();
+  $('status').textContent = '家計簿を開いています…';
+  try {
+    await refreshLastSheetRow();
+  } catch (_) {
+    // 通信できない場合も、端末に保存済みの最終行を使って開く。
   }
+  try { window.location.assign(sheetUrl()); }
+  catch (error) { $('status').textContent = error.message; }
 });
 
 form.addEventListener('submit', async event => {
