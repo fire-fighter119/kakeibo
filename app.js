@@ -241,7 +241,7 @@ form.addEventListener('submit', async event => {
   }
   savingLocally = true;
   $('submit').disabled = true;
-  $('submit').textContent = '端末に保存中…';
+  $('submitLabel').textContent = '保存中…';
   receipt = null;
   notice = '送信の準備中…';
   $('status').dataset.state = 'sending';
@@ -264,7 +264,7 @@ form.addEventListener('submit', async event => {
     controls.forEach(el => { el.disabled = false; });
     savingLocally = false;
     $('submit').disabled = false;
-    $('submit').textContent = '送信';
+    $('submitLabel').textContent = '送信する';
   }
   void flushOutbox();
 });

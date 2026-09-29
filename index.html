@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>家計簿｜使ったお金を記録</title>
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <style>
   :root{--coral:#ff6f61;--coral-dark:#df594d;--coral-pale:#fff0eb;--cream:#fff3e0;--ink:#342f2c;--muted:#746963;--line:#ecdcd2;--teal:#4db6ac}
   *{box-sizing:border-box} body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;line-height:1.5;padding:18px 12px 190px}
@@ -25,8 +27,13 @@
   .memo{margin-top:22px}.memo label{display:block;margin:0 0 6px;font-size:13px;font-weight:700;color:var(--muted)}textarea{min-height:46px;padding:10px 12px;resize:vertical;font-size:14px}
   .notice{margin:15px 0 0;padding:10px 12px;border-left:3px solid #d79624;background:#fff8dd;color:#715d35;font-size:12px}.notice[hidden]{display:none}
   button,.view-button{display:flex;align-items:center;justify-content:center;width:100%;min-height:58px;border:0;border-radius:14px;font-weight:850;text-decoration:none;cursor:pointer}.submit{margin-top:20px;background:var(--coral);color:#fff;font-size:20px;box-shadow:0 5px 12px rgba(255,111,97,.25)}.submit:hover{background:var(--coral-dark)}.submit:disabled{opacity:.65;cursor:wait}.view-button{margin-top:12px;background:var(--teal);color:#fff;font-size:16px}.view-button:hover{background:#358f87}.status{min-height:22px;margin:13px 1px 0;font-size:13px;white-space:pre-wrap}.status:empty{display:none}.help{margin-top:13px;color:var(--muted);font-size:12px;text-align:center}
-  .send-dock{position:fixed;z-index:20;left:0;right:0;bottom:var(--keyboard-offset,0px);padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(255,255,255,.98);border-top:1px solid var(--line);box-shadow:0 -4px 20px rgba(95,60,35,.08)}
-  .send-dock-inner{max-width:420px;margin:auto}.send-dock .submit{margin:0;min-height:54px}.send-dock .status{margin:9px 0 0;padding:12px;border-radius:12px;font-size:15px;font-weight:750;line-height:1.6;text-align:center;background:#fff5df;color:#80530c;border:2px solid #eed194}.send-dock .status[data-state="success"]{background:#e6f6ee;color:#166840;border-color:#49a87b;font-size:17px}.send-dock .status[data-state="error"]{background:#fff0ed;color:#a53528;border-color:#e39c90}.send-dock .help{margin:5px 0 0;font-size:11px}
+  .send-dock{position:fixed;z-index:20;left:0;right:0;bottom:var(--keyboard-offset,0px);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));pointer-events:none}
+  .send-dock-inner{max-width:420px;margin:auto;padding:7px;border:1px solid rgba(255,255,255,.9);border-radius:25px;background:rgba(255,250,246,.94);box-shadow:0 8px 30px rgba(49,61,56,.16),0 1px 3px rgba(49,61,56,.06);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);pointer-events:auto}
+  .send-dock .submit{position:relative;gap:10px;margin:0;min-height:56px;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:linear-gradient(135deg,#214f49,#163c38);color:#fff;font-size:17px;font-weight:700;letter-spacing:.09em;box-shadow:0 3px 8px rgba(22,60,56,.16);transition:background .15s,transform .15s,box-shadow .15s}
+  .send-dock .submit:hover{background:linear-gradient(135deg,#2b625a,#214f49);box-shadow:0 4px 12px rgba(22,60,56,.23)}.send-dock .submit:active{transform:scale(.985)}.send-dock .submit:focus-visible{outline:3px solid #c76743;outline-offset:4px}.send-dock .submit:disabled{opacity:.7;transform:none}
+  .submit-icon{display:grid;place-items:center;width:28px;height:28px}.submit-icon svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+  .send-dock .status{margin:7px 0 0;padding:11px 12px;border-radius:17px;font-size:14px;font-weight:650;line-height:1.65;text-align:center;background:#fff4df;color:#80530c;border:1px solid #eed194}.send-dock .status[data-state="success"]{background:#e9f5ed;color:#166840;border-color:#a3d1b6;font-size:15px}.send-dock .status[data-state="error"]{background:#fff0ed;color:#a53528;border-color:#e39c90}
+  @media(prefers-reduced-motion:reduce){.send-dock .submit{transition:none}}
   .outbox{margin-top:20px;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:13px}.outbox[hidden]{display:none}.outbox summary{cursor:pointer;font-weight:700}.outbox ul{padding-left:20px;margin:10px 0}.outbox li{margin:8px 0;overflow-wrap:anywhere}.retry{margin-top:10px;min-height:42px;background:var(--teal);color:white;font-size:14px}
   input,select,textarea{scroll-margin-bottom:180px}
   @media(max-width:355px){main{padding:20px 16px}.feature-groups{gap:9px}.choice span{font-size:12px}.flow{display:none}}
@@ -84,14 +91,13 @@
 </main>
 <footer id="sendDock" class="send-dock">
   <div class="send-dock-inner">
-    <button id="submit" class="submit" type="submit" form="entry">送信</button>
+    <button id="submit" class="submit" type="submit" form="entry"><span class="submit-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m21 3-7 18-4-7-7-4 18-7Z"/><path d="m10 14 5-5"/></svg></span><span id="submitLabel">送信する</span></button>
     <p id="status" class="status" role="status" aria-live="polite"></p>
-    <p class="help">送信後は金額とメモだけを空にします。</p>
   </div>
 </footer>
 <script src="config.js"></script>
 <script src="categories.js"></script>
 <script src="outbox.js?v=20260929"></script>
-<script src="app.js?v=20260929-complete2"></script>
+<script src="app.js?v=20260929-refined"></script>
 </body>
 </html>
