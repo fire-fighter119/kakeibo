@@ -2,11 +2,11 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>家計簿｜使ったお金を記録</title>
 <style>
   :root{--coral:#ff6f61;--coral-dark:#df594d;--coral-pale:#fff0eb;--cream:#fff3e0;--ink:#342f2c;--muted:#746963;--line:#ecdcd2;--teal:#4db6ac}
-  *{box-sizing:border-box} body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;line-height:1.5;padding:18px 12px 42px}
+  *{box-sizing:border-box} body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;line-height:1.5;padding:18px 12px 190px}
   main{max-width:460px;margin:auto;background:#fff;border-radius:24px;padding:24px 20px;box-shadow:0 10px 28px rgba(95,60,35,.1)}
   h1,p{margin:0} header{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px;gap:12px} h1{font-size:21px;color:var(--coral-dark)} .flow{font-size:11px;color:var(--muted);white-space:nowrap}
   .block{margin-top:23px}.block:first-of-type{margin-top:0}.label{display:block;font-size:16px;font-weight:800;margin:0 0 9px}.step{display:inline-grid;place-items:center;width:22px;height:22px;margin-right:6px;border-radius:50%;background:var(--coral-pale);color:var(--coral-dark);font-size:12px}
@@ -25,6 +25,10 @@
   .memo{margin-top:22px}.memo label{display:block;margin:0 0 6px;font-size:13px;font-weight:700;color:var(--muted)}textarea{min-height:46px;padding:10px 12px;resize:vertical;font-size:14px}
   .notice{margin:15px 0 0;padding:10px 12px;border-left:3px solid #d79624;background:#fff8dd;color:#715d35;font-size:12px}.notice[hidden]{display:none}
   button,.view-button{display:flex;align-items:center;justify-content:center;width:100%;min-height:58px;border:0;border-radius:14px;font-weight:850;text-decoration:none;cursor:pointer}.submit{margin-top:20px;background:var(--coral);color:#fff;font-size:20px;box-shadow:0 5px 12px rgba(255,111,97,.25)}.submit:hover{background:var(--coral-dark)}.submit:disabled{opacity:.65;cursor:wait}.view-button{margin-top:12px;background:var(--teal);color:#fff;font-size:16px}.view-button:hover{background:#358f87}.status{min-height:22px;margin:13px 1px 0;font-size:13px;white-space:pre-wrap}.status:empty{display:none}.help{margin-top:13px;color:var(--muted);font-size:12px;text-align:center}
+  .send-dock{position:fixed;z-index:20;left:0;right:0;bottom:var(--keyboard-offset,0px);padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(255,255,255,.98);border-top:1px solid var(--line);box-shadow:0 -4px 20px rgba(95,60,35,.08)}
+  .send-dock-inner{max-width:420px;margin:auto}.send-dock .submit{margin:0;min-height:54px}.send-dock .status{margin:7px 0 0;font-size:12px}.send-dock .help{margin:5px 0 0;font-size:11px}
+  .outbox{margin-top:20px;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:13px}.outbox[hidden]{display:none}.outbox summary{cursor:pointer;font-weight:700}.outbox ul{padding-left:20px;margin:10px 0}.outbox li{margin:8px 0;overflow-wrap:anywhere}.retry{margin-top:10px;min-height:42px;background:var(--teal);color:white;font-size:14px}
+  input,select,textarea{scroll-margin-bottom:180px}
   @media(max-width:355px){main{padding:20px 16px}.feature-groups{gap:9px}.choice span{font-size:12px}.flow{display:none}}
 </style>
 </head>
@@ -69,14 +73,25 @@
 
     <section class="memo"><label for="note">メモ（任意）</label><textarea id="note" name="note" rows="2" placeholder="例：家族で夕食"></textarea></section>
     <p id="investmentHint" class="notice" hidden>NISA・積立は生活支出と分けて記録します。</p>
-    <button id="submit" class="submit" type="submit">送信</button>
     <a id="viewSheet" class="view-button" href="https://docs.google.com/spreadsheets/d/1CZhcauxXKsahIZyyriJDtoyZqzZGiYwYEbwW_ES-mTk/edit?gid=444457785#gid=444457785">📊 家計簿を見る</a>
-    <p id="status" class="status" role="status" aria-live="polite"></p>
-    <p class="help">送信後は金額とメモだけを空にします。</p>
+    <details id="outboxArea" class="outbox" hidden>
+      <summary id="outboxSummary">送信待ち</summary>
+      <ul id="outboxList"></ul>
+      <p>保存完了までこの端末に残ります。画面を閉じた場合は、次回開いたときに再送します。</p>
+      <button id="retry" class="retry" type="button">今すぐ再送</button>
+    </details>
   </form>
 </main>
+<footer id="sendDock" class="send-dock">
+  <div class="send-dock-inner">
+    <button id="submit" class="submit" type="submit" form="entry">送信</button>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <p class="help">送信後は金額とメモだけを空にします。</p>
+  </div>
+</footer>
 <script src="config.js"></script>
 <script src="categories.js"></script>
-<script src="app.js"></script>
+<script src="outbox.js?v=20260929"></script>
+<script src="app.js?v=20260929"></script>
 </body>
 </html>

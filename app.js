@@ -5,19 +5,13 @@ const UNIFIED_GID = '444457785';
 const LAST_UNIFIED_ROW_KEY = 'kakeiboLastUnifiedRow';
 const $ = id => document.getElementById(id);
 const form = $('entry');
-let sending = false;
-let pendingEntryId = '';
+let savingLocally = false;
+let syncing = false;
+let latestRow = 0;
+let notice = '';
+const outbox = KakeiboOutbox;
+const failedEntries = new Map();
 
-function newEntryId() {
-  if (globalThis.crypto && globalThis.crypto.randomUUID) return globalThis.crypto.randomUUID();
-  const bytes = new Uint32Array(4);
-  if (globalThis.crypto && globalThis.crypto.getRandomValues) globalThis.crypto.getRandomValues(bytes);
-  return Array.from(bytes, value => value.toString(36)).join('-') || 'entry-' + Date.now() + '-' + Math.random().toString(36).slice(2);
-}
-function ensureEntryId() {
-  if (!pendingEntryId) pendingEntryId = newEntryId();
-  return pendingEntryId;
-}
 function formatDate(value) {
   if (!value) return '日付を選択してください';
   const parts = value.split('-').map(Number);
@@ -67,7 +61,8 @@ function sheetUrl() {
   if (url.protocol !== 'https:' || url.hostname !== 'docs.google.com' || !url.pathname.startsWith('/spreadsheets/d/')) {
     throw new Error('支出一覧のリンク先が設定されていません。');
   }
-  const row = Number(localStorage.getItem(LAST_UNIFIED_ROW_KEY));
+  let row = latestRow;
+  try { row = row || Number(localStorage.getItem(LAST_UNIFIED_ROW_KEY)); } catch (_) {}
   url.hash = 'gid=' + UNIFIED_GID + (Number.isSafeInteger(row) && row > 1 ? '&range=A' + row : '');
   return url.href;
 }
@@ -87,7 +82,7 @@ async function refreshLastSheetRow() {
   if (result.ok !== true || !Number.isSafeInteger(row) || row < 1) {
     throw new Error(result.error || '最終行を確認できませんでした。');
   }
-  localStorage.setItem(LAST_UNIFIED_ROW_KEY, String(row));
+  rememberRow(row);
   updateSheetLink();
 }
 
@@ -106,15 +101,6 @@ $('category').addEventListener('change', () => {
   applyDefaults();
 });
 
-// 送信失敗後に内容を変更した場合は、同じ記録IDを再利用しない。
-// 変更しなければ同じIDのまま安全に再送できる。
-form.addEventListener('input', () => {
-  if (!sending && pendingEntryId) pendingEntryId = '';
-});
-
-form.addEventListener('change', () => {
-  if (!sending && pendingEntryId) pendingEntryId = '';
-});
 $('date').addEventListener('input', updateDate);
 $('date').addEventListener('change', updateDate);
 $('viewSheet').addEventListener('click', async event => {
@@ -129,44 +115,152 @@ $('viewSheet').addEventListener('click', async event => {
   catch (error) { $('status').textContent = error.message; }
 });
 
-form.addEventListener('submit', async event => {
-  event.preventDefault();
-  if (sending) return;
-  let data;
-  try {
-    data = Kakeibo.payload(Object.assign({}, Object.fromEntries(new FormData(form)), {entryId: ensureEntryId()}));
-  } catch (error) {
-    $('status').textContent = error.message;
-    return;
-  }
+function rememberRow(row) {
+  latestRow = row;
+  try { localStorage.setItem(LAST_UNIFIED_ROW_KEY, String(row)); } catch (_) {}
+  updateSheetLink();
+}
 
-  sending = true;
-  $('submit').disabled = true;
-  $('submit').textContent = '送信中…';
-  $('status').textContent = '';
+function positionDock() {
+  const viewport = window.visualViewport;
+  const offset = viewport ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop) : 0;
+  document.documentElement.style.setProperty('--keyboard-offset', offset + 'px');
+  const height = $('sendDock').getBoundingClientRect().height;
+  document.body.style.paddingBottom = (height + 30) + 'px';
+}
+window.visualViewport?.addEventListener('resize', positionDock);
+window.visualViewport?.addEventListener('scroll', positionDock);
+window.addEventListener('resize', positionDock);
+new ResizeObserver(positionDock).observe($('sendDock'));
+positionDock();
+
+async function renderOutbox() {
+  const entries = (await outbox.all()).sort((a, b) => a.queuedAt - b.queuedAt);
+  $('outboxArea').hidden = entries.length === 0;
+  $('outboxSummary').textContent = '送信待ち ' + entries.length + '件';
+  $('outboxList').replaceChildren();
+  for (const entry of entries) {
+    const li = document.createElement('li');
+    li.textContent = entry.date + ' · ' + entry.paymentItem + ' · ' + Number(entry.amount).toLocaleString('ja-JP') + '円';
+    if (failedEntries.has(entry.entryId)) li.textContent += ' — ' + failedEntries.get(entry.entryId);
+    $('outboxList').append(li);
+  }
+  $('retry').disabled = syncing || !entries.length;
+  $('status').textContent = notice || (entries.length
+    ? '送信待ち ' + entries.length + '件。閉じても次回開いたときに再送します。'
+    : '');
+}
+
+async function sendEntry(entry) {
+  const {queuedAt, ...data} = entry;
+  const body = JSON.stringify(data);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
   try {
     const response = await fetch(ENDPOINT, {
       method: 'POST',
       headers: {'Content-Type': 'text/plain;charset=UTF-8'},
-      body: JSON.stringify(data)
+      body,
+      // Keepalive is best effort. IndexedDB + the same entryId cover interruptions.
+      keepalive: true,
+      signal: controller.signal
     });
     if (!response.ok) throw new Error('HTTP ' + response.status);
     const result = await response.json();
-    if (result.ok !== true || !Number.isSafeInteger(Number(result.unifiedRow))) {
-      throw new Error(result.error || '保存結果を確認できませんでした。');
+    const row = Number(result.unifiedRow);
+    if (result.ok !== true || result.entryId !== data.entryId || !Number.isSafeInteger(row) || row < 2) {
+      throw new Error('保存結果を確認できませんでした');
     }
-    localStorage.setItem(LAST_UNIFIED_ROW_KEY, String(result.unifiedRow));
-    updateSheetLink();
+    // Delete only after the receiver acknowledges this exact entry.
+    await outbox.remove(data.entryId);
+    rememberRow(row);
+    failedEntries.delete(data.entryId);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function flushOutbox() {
+  if (syncing || navigator.onLine === false) return;
+  syncing = true;
+  let saved = false;
+  const attempted = new Set();
+  try {
+    // Pick up entries added during an earlier network request as well.
+    while (true) {
+      const entries = (await outbox.all()).filter(entry => !attempted.has(entry.entryId))
+        .sort((a, b) => a.queuedAt - b.queuedAt);
+      if (!entries.length) break;
+      for (const entry of entries) {
+        attempted.add(entry.entryId);
+        try {
+          await sendEntry(entry);
+          saved = true;
+        } catch (_) {
+          failedEntries.set(entry.entryId, '未確認・再送待ち');
+        }
+        await renderOutbox();
+      }
+    }
+    const remaining = await outbox.all();
+    if (!remaining.length && saved) notice = '記録しました。続けて入力できます。';
+  } catch (_) {
+    notice = '端末の送信待ちを確認できません。もう一度開き直してください。';
+  } finally {
+    syncing = false;
+    await renderOutbox().catch(() => {});
+  }
+}
+
+form.addEventListener('submit', async event => {
+  event.preventDefault();
+  if (savingLocally) return;
+  let data;
+  try {
+    data = Kakeibo.payload({...Object.fromEntries(new FormData(form)), entryId: outbox.newId()});
+    if (new Blob([JSON.stringify(data)]).size > 60000) throw new Error('メモが長すぎます。短くして送信してください。');
+  } catch (error) {
+    notice = error.message;
+    $('status').textContent = notice;
+    return;
+  }
+  savingLocally = true;
+  $('submit').disabled = true;
+  $('submit').textContent = '端末に保存中…';
+  notice = '端末に保存しています…';
+  $('status').textContent = notice;
+  // Disable only for the short local transaction, not for the network round trip.
+  const controls = Array.from(form.elements).filter(el => /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName));
+  controls.forEach(el => { el.disabled = true; });
+  try {
+    await outbox.add(data);
     $('amount').value = '';
     $('note').value = '';
-    pendingEntryId = '';
-    $('status').textContent = '記録しました。続けて入力できます。';
-    $('amount').focus();
+    notice = '';
+    document.activeElement?.blur();
+    await renderOutbox().catch(() => { $('status').textContent = '端末に保存しました。送信待ちです。'; });
   } catch (_) {
-    $('status').textContent = '保存結果を確認できませんでした。入力内容は残しています。支出一覧を確認してから、同じ内容で再送してください。';
+    notice = '端末に保存できませんでした。入力は残しています。空き容量やブラウザ設定を確認してください。';
+    $('status').textContent = notice;
   } finally {
-    sending = false;
+    controls.forEach(el => { el.disabled = false; });
+    savingLocally = false;
     $('submit').disabled = false;
     $('submit').textContent = '送信';
   }
+  void flushOutbox();
+});
+
+$('retry').addEventListener('click', () => { notice = ''; void flushOutbox(); });
+window.addEventListener('online', () => { notice = ''; void flushOutbox(); });
+window.addEventListener('pageshow', () => { void flushOutbox(); });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') void flushOutbox();
+});
+setInterval(() => {
+  if (document.visibilityState === 'visible') void flushOutbox();
+}, 30000);
+renderOutbox().then(flushOutbox).catch(() => {
+  notice = '端末の保存機能を利用できません。送信時に保存を確認します。';
+  $('status').textContent = notice;
 });
